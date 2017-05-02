@@ -15,8 +15,8 @@ extern	void xdone(void);	/* system "shutdown" procedure		*/
 static	void sysinit(void);	/* initializes system structures	*/
 
 /* Declarations of major kernel variables */
-struct 	lockentry 	locktab[NLOCK]	/* Lock table*/
-struct	procent		roctab[NPROC];	/* Process table*/
+struct 	lockentry 	locktab[NLOCK];	/* Lock table*/
+struct	procent		proctab[NPROC];	/* Process table*/
 struct	sentry		semtab[NSEM];	/* Semaphore table*/
 struct	memblk		memlist;	/* List of free memory blocks*/
 
@@ -103,10 +103,11 @@ void	nulluser(void)
 static	void	sysinit(void)
 {
 	int32	i;
-	struct	procent	*prptr;		/* ptr to process table entry	*/
-	struct	dentry	*devptr;	/* ptr to device table entry	*/
-	struct	sentry	*semptr;	/* prr to semaphore table entry	*/
-	struct	memblk	*memptr;	/* ptr to memory block		*/
+	struct	procent	*prptr;		/* ptr to process table entry */
+	struct	dentry	*devptr;	/* ptr to device table entry */
+	struct	sentry	*semptr;	/* ptr to semaphore table entry */
+	struct	memblk	*memptr;	/* ptr to memory block	*/
+	struct 	lockentry *lptr;	/* ptr to lock table entry */
 
 	/* Initialize the interrupt vectors */
 
@@ -179,9 +180,10 @@ static	void	sysinit(void)
 	/* Initialze Lock table */
 	for(i = 0; i < NLOCK; i++)
 	{
-		locktab[i]->state = LOCK_FREE;
-		locktab[i]->lock = FALSE;
-		locktab[i]->waitqueue = newqueue();	
+		lptr = &locktab[i];
+		lptr->state = LOCK_FREE;
+		lptr->lock = FALSE;
+		lptr->wait_queue = newqueue();	
 	}
 
 	/* Initialize buffer pools */

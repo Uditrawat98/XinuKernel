@@ -6,8 +6,9 @@
 
 #define N 5				//number of philosophers and forks
 
-struct lockentry forks[N];			//array of locks
-struct lockentry mutex = lock_create();	//mutex for printing
+lid32 forks[N];			//array of locks
+lid32 lock;	
+struct 	lockentry *lptr;	/* ptr for lock table entry */	
 
 /**
  * Delay for a random amount of time
@@ -43,7 +44,7 @@ void	think()
  * @param phil_id philosopher's id
  */
 void	philosopher(uint32 phil_id)
-{
+{	
 	//seed rand() from time of boot
 	srand(phil_id);
 
@@ -84,9 +85,9 @@ void	philosopher(uint32 phil_id)
 		if(.3 < odds && odds <= 1)
 		{
 			//locks to print and then thinks
-			acquire(&mutex);
+			acquire(lock);
 			kprintf("Philosopher %d thinking: zzzzzZZZz\n", phil_id);
-			release(&mutex);
+			release(lock);
 			think();
 		}
 		
@@ -94,25 +95,28 @@ void	philosopher(uint32 phil_id)
 		else
 		{
 			//grab the right fork
-			acquire(&forks[right]);
+			acquire(forks[right]);
+	
+			//get a pointer to the lock in the lock table @index lock	
+			lptr = &locktab[forks[left]];
 
 			//check to see if the left fork is available
-			if(forks[left]->state == LOCK_FREE)
+			if(lptr->lock == FALSE)
 			{
 				//lock the left fork and mutex to print then unlock them
-				acquire(&forks[left]);
-				acquire(&mutex);
+				acquire(forks[left]);
+				acquire(lock);
 				kprintf("Philosopher %d eating: nom nom nom\n", phil_id);
-				release(&mutex);
+				release(lock);
 				eat();	
-				release(&forks[left]);
-				release(&forks[right]);
+				release(forks[left]);
+				release(forks[right]);
 			}
 			
 			//drop fork
 			else
 			{
-				release(&forks[right]);
+				release(forks[right]);
 			}			
 		} 		
 	}
@@ -120,6 +124,15 @@ void	philosopher(uint32 phil_id)
 
 int	main(uint32 argc, uint32 *argv)
 {		
+	//initialize locks
+	lock = lock_create();
+	
+	int i;
+	for(i = 0; i < N; i++)
+	{
+		forks[i] = lock_create();
+	}
+	
 	//do not change
 	ready(create((void*) philosopher, INITSTK, 15, "Ph1", 1, 0), FALSE);
 	ready(create((void*) philosopher, INITSTK, 15, "Ph2", 1, 1), FALSE);
