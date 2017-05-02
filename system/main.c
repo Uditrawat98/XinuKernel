@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define N 5	//number of philosophers and forks
+#define N 5				//number of philosophers and forks
 
-mutex_t forks[N];		//default init for an array of ints is 0
-mutex_t mutex = FALSE;		//locking the print statements
+struct lockentry forks[N];			//array of locks
+struct lockentry mutex = lock_create();	//mutex for printing
 
 /**
  * Delay for a random amount of time
@@ -84,9 +84,9 @@ void	philosopher(uint32 phil_id)
 		if(.3 < odds && odds <= 1)
 		{
 			//locks to print and then thinks
-			mutex_lock(&mutex);
+			acquire(&mutex);
 			kprintf("Philosopher %d thinking: zzzzzZZZz\n", phil_id);
-			mutex_unlock(&mutex);
+			release(&mutex);
 			think();
 		}
 		
@@ -94,41 +94,26 @@ void	philosopher(uint32 phil_id)
 		else
 		{
 			//grab the right fork
-			mutex_lock(&forks[right]);
+			acquire(&forks[right]);
 
 			//check to see if the left fork is available
-			if(forks[left] == FALSE)
+			if(forks[left]->state == LOCK_FREE)
 			{
 				//lock the left fork and mutex to print then unlock them
-				mutex_lock(&forks[left]);
-				mutex_lock(&mutex);
+				acquire(&forks[left]);
+				acquire(&mutex);
 				kprintf("Philosopher %d eating: nom nom nom\n", phil_id);
-				mutex_unlock(&mutex);
+				release(&mutex);
 				eat();	
-				mutex_unlock(&forks[left]);
-				mutex_unlock(&forks[right]);
+				release(&forks[left]);
+				release(&forks[right]);
 			}
 			
 			//drop fork
 			else
 			{
-				mutex_unlock(&forks[right]);
-			}
-			
-			//both are open
-			/*
-			if(forks[right] == FALSE && forks[left] == FALSE)
-			{
-				mutex_lock(&forks[right]);
-				mutex_lock(&forks[left]);
-				mutex_lock(&mutex);
-				kprintf("Philosopher %d eating: nom nom nom\n", phil_id);
-				mutex_unlock(&mutex);
-				eat();	
-				mutex_unlock(&forks[right]);
-				mutex_unlock(&forks[left]);
-			}
-			*/			
+				release(&forks[right]);
+			}			
 		} 		
 	}
 }
