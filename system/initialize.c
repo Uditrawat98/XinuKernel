@@ -15,10 +15,10 @@ extern	void xdone(void);	/* system "shutdown" procedure		*/
 static	void sysinit(void);	/* initializes system structures	*/
 
 /* Declarations of major kernel variables */
-
-struct	procent	proctab[NPROC];	/* Process table			*/
-struct	sentry	semtab[NSEM];	/* Semaphore table			*/
-struct	memblk	memlist;	/* List of free memory blocks		*/
+struct 	lockentry 	locktab[NLOCK]	/* Lock table*/
+struct	procent		roctab[NPROC];	/* Process table*/
+struct	sentry		semtab[NSEM];	/* Semaphore table*/
+struct	memblk		memlist;	/* List of free memory blocks*/
 
 /* Active system status */
 
@@ -174,6 +174,14 @@ static	void	sysinit(void)
 		semptr->sstate = S_FREE;
 		semptr->scount = 0;
 		semptr->squeue = newqueue();
+	}
+
+	/* Initialze Lock table */
+	for(i = 0; i < NLOCK; i++)
+	{
+		locktab[i]->state = LOCK_FREE;
+		locktab[i]->lock = FALSE;
+		locktab[i]->waitqueue = newqueue();	
 	}
 
 	/* Initialize buffer pools */
