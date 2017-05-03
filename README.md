@@ -1,10 +1,10 @@
 # CSCI475-Proj4 Deadlock Detection and Recovery (xinu)
-###Implementing time scheduling in Oracle VM VirtualBox ~5.1.14.
+### Implementing time scheduling in Oracle VM VirtualBox ~5.1.14.
 
-###This repository is being used as a collaborative workspace for project group memebers.
+### This repository is being used as a collaborative workspace for project group memebers.
 
-####Project 4
-####Authors: Jack Burns and Ian White
+#### Project 4 ####
+#### Authors: Jack Burns and Ian White ####
 
 In this project we implemented a simple deadlock detection algorithm outside of xinu and then adjusted our xinu OS to work with that algorithm. The detection algorithm made use of a resource allocation graph to detect when a cycle occurred. In xinu we replaced the mutex_t locks with lockentry structs, which hold a mutex_t lock, a queue of waiting processes, and a state variable. We then implemented a RAG inside xinu to detect deadlocks every 50 times resesched was run. Deadlock recovery presented some problems, namely that actually killing the process holding the lock caused the program to stop entirely. So we killed the process later in the function. 
 
