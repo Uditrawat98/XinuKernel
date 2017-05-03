@@ -2,12 +2,33 @@
 
 #include <xinu.h>
 
+int resched_count;	/* Tracks how many times reschedule is called */
+
 /**
  * Reschedule processor to next ready process
  *
  */
 void	resched(void)		// assumes interrupts are disabled
 {
+	//Iterate resched_count
+	resched_count++;
+
+	//run deadlock detection every 50 times reschedule() is called
+	if(resched_count == 50)
+	{		
+		//disable interrupts
+		intmask mask = disable();
+
+		//look for deadlocks
+		deadlock_detect();
+
+		//restore interrupts
+		restore(mask);
+	
+		//reset the count
+		resched_count = 0;
+	}
+	
 	struct procent *ptold;	// ptr to table entry for old process
 	struct procent *ptnew;	// ptr to table entry for new process
 
@@ -53,17 +74,14 @@ void	resched(void)		// assumes interrupts are disabled
 	pid32 xpid = dequeue(readyqueue);
 	ptnew = &proctab[xpid];
 
-	
 	// TODO - change its state to "current" (i.e., running)
 	ptnew->prstate = PR_CURR;
 
 	//reset preempt
-	//kprintf("Context Switch on: %d ---> %d\n", currpid, xpid); 
+	preempt = QUANTUM;
 
 	// TODO - set currpid to reflect new running process' PID
 	currpid = xpid;
-
-	preempt = QUANTUM;
 
 	// Context switch to next ready process
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);

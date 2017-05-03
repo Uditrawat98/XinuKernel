@@ -15,6 +15,7 @@ extern	void xdone(void);	/* system "shutdown" procedure		*/
 static	void sysinit(void);	/* initializes system structures	*/
 
 /* Declarations of major kernel variables */
+int rag[NLOCK + NPROC][NLOCK + NPROC];	/* RAG for deadlock detection */
 struct 	lockentry 	locktab[NLOCK];	/* Lock table*/
 struct	procent		proctab[NPROC];	/* Process table*/
 struct	sentry		semtab[NSEM];	/* Semaphore table*/
@@ -102,12 +103,22 @@ void	nulluser(void)
 
 static	void	sysinit(void)
 {
-	int32	i;
+	int32	i,j;
+	int32 	n;
 	struct	procent	*prptr;		/* ptr to process table entry */
 	struct	dentry	*devptr;	/* ptr to device table entry */
 	struct	sentry	*semptr;	/* ptr to semaphore table entry */
 	struct	memblk	*memptr;	/* ptr to memory block	*/
 	struct 	lockentry *lptr;	/* ptr to lock table entry */
+
+	/* Initialize RAG to all 0s */
+	for(i = 0; i < n; i++)
+	{
+		for(j = 0; j < n; j++)
+		{
+			rag[i][j] = 0;
+		}	
+	} 
 
 	/* Initialize the interrupt vectors */
 
@@ -118,6 +129,9 @@ static	void	sysinit(void)
 	/* Count the Null process as the first process in the system */
 
 	prcount = 1;
+	
+	/* Set deadlock_count to 0 */
+	resched_count = 0;
 
 	/* Scheduling is not currently blocked */
 

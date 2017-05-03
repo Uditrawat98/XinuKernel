@@ -84,3 +84,6 @@ syscall	kgetc(void);
 
 /* global list of ready processes*/
 extern	struct queue	*readyqueue;
+
+/* deadlock_count */
+extern int	resched_count;

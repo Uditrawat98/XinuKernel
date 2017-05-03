@@ -6,9 +6,7 @@
  *  kill  -  Kill a process and remove it from the system
  *------------------------------------------------------------------------
  */
-syscall	kill(
-	  pid32		pid		/* ID of process to kill	*/
-	)
+syscall	kill(pid32 pid)			/* ID of process to kill	*/
 {
 	intmask	mask;			/* saved interrupt mask		*/
 	struct	procent *prptr;		/* ptr to process' table entry	*/
